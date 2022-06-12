@@ -119,3 +119,48 @@ CallService 클래스에는 `external()` 메서드만 존재하고, InternalServ
 
 실제 호출되는 흐름은 위의 이미지처럼 동작되고, InternalService는 `AOP Proxy로 생성되어 스프링 컨테이너에 등록되고`, 해당 AOP Proxy는 실제 InternalService 클래스의
 내부 `internal()` 메서드를 호출한다.
+
+### 초기화 시점
+
+스프링 초기화 시점에는 트랜잭션 AOP가 적용되지 않을 수 있다.
+
+```java
+
+@Slf4j
+static class Hello {
+
+    @PostConstruct
+    @Transactional
+    public void initV1() {
+        boolean txActive = TransactionSynchronizationManager.isActualTransactionActive();
+        log.info("Hello init @PostConstruct tx active={}", txActive);
+    }
+}
+```
+
+<img width="749" alt="스크린샷 2022-06-12 오후 2 53 30" src="https://user-images.githubusercontent.com/23515771/173217744-bd62210f-c9fd-47d2-a865-1a17d4c32b76.png">
+
+`@PostConstructor` 와 `@Transactional` 를 함께 사용하면, 트랜잭션이 적용되지 않는다. 왜냐하면, 초기화 코드가 먼저 호출되고 그 다음에 트랜잭션 AOP가 적용되기 때문이다.
+따라서**초기화 시점에는 해당 메서드에서 트랜잭션을 획득할 수 없다.**
+
+### 초기화 시점에 트랜잭션을 적용하는 방법
+
+스프링이 초기화 작업(AOP Proxy 만들거나 기타 등등)이 끝난 후에 해당 메서드를 호출하면 된다.
+
+```java
+
+@Slf4j
+static class Hello {
+
+    @EventListener(ApplicationReadyEvent.class)
+    @Transactional
+    public void initV2() {
+        boolean txActive = TransactionSynchronizationManager.isActualTransactionActive();
+        log.info("Hello init @EventListener(ApplicationReadyEvent.class) tx active={}", txActive);
+    }
+}
+```
+
+<img width="1006" alt="스크린샷 2022-06-12 오후 2 55 00" src="https://user-images.githubusercontent.com/23515771/173217799-4e33c86f-767e-4ac8-b96d-63b0aa2b2ec9.png">
+
+`@EventListener(ApplicationReadyEvent.class)` 을 사용하면, 스프링이 초기화가 다 끝난 후에 트랜잭션을 시작할 수 있도록 해준다.
