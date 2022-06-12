@@ -25,7 +25,7 @@ public class Order {
     private String username; // 정상, 예외, 잔고부족
 
     @Enumerated(EnumType.STRING)
-    private OrderPayStatus payStatus; // 대기, 완료
+    private OrderPayStatus payStatus;
 
     public Order(String username) {
         this.username = username;
