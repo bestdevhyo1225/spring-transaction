@@ -69,3 +69,53 @@ public class CallService {
 ![스크린샷 2022-06-12 오후 2 09 00](https://user-images.githubusercontent.com/23515771/173215708-130e65ad-3e59-49a5-887c-962b9d3abaa4.png)
 
 위의 그림을 토대로 프록시 내부 호출시 발생하는 문제를 알 수 있다. 자기 자신의 `internal()` 를 호출한다. 즉, `this.internal()` 메서드를 호출 한다.
+
+### 프록시 내부 호출 개선하기
+
+```java
+
+@Slf4j
+public class InternalService {
+
+    @Transactional
+    public void internal() {
+        log.info("call internal");
+        printTxInfo();
+    }
+
+    private void printTxInfo() {
+        boolean txActive = TransactionSynchronizationManager.isActualTransactionActive();
+        log.info("tx active={}", txActive);
+    }
+}
+```
+
+InternalService 클래스를 생성해서 `internal()` 메서드를 분리한다.
+
+```java
+
+@Slf4j
+@RequiredArgsConstructor
+public class CallService {
+
+    private final InternalService internalService;
+
+    public void external() {
+        log.info("call external");
+        printTxInfo();
+        internalService.internal();
+    }
+
+    private void printTxInfo() {
+        boolean txActive = TransactionSynchronizationManager.isActualTransactionActive();
+        log.info("tx active={}", txActive);
+    }
+}
+```
+
+CallService 클래스에는 `external()` 메서드만 존재하고, InternalService 클래스를 주입 받아서 `internal()` 메서드를 호출한다.
+
+![스크린샷 2022-06-12 오후 2 33 17](https://user-images.githubusercontent.com/23515771/173217218-8ca23c8e-3684-48a6-b78c-941cefd54db0.png)
+
+실제 호출되는 흐름은 위의 이미지처럼 동작되고, InternalService는 `AOP Proxy로 생성되어 스프링 컨테이너에 등록되고`, 해당 AOP Proxy는 실제 InternalService 클래스의
+내부 `internal()` 메서드를 호출한다.
