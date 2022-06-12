@@ -26,5 +26,46 @@ logging.level.org.springframework.transaction.interceptor=TRACE
 
 클래스의 메서드를 찾고, 없으면 클래스 타입을 찾고, 없으면 인터페이스의 메서드를 찾는다. 그래도 없으면 인터페이스의 타입을 찾는다.
 
-인터페이스에 `@Transactional` 를 사용하는 것은 스프링 공식 메뉴얼에서 권장하지 않는 방법이다. **AOP를 적용하는 방식에 따라서 인터페이스의 AOP가 적용되지 않기 때문이다.**
-가급적이면, **구체 클래스에 `@Transactional` 을 적용하자!**
+- 인터페이스에 `@Transactional` 를 사용하는 것은 스프링 공식 메뉴얼에서 권장하지 않는 방법이다. **AOP를 적용하는 방식에 따라서 인터페이스의 AOP가 적용되지 않기 때문이다.**
+  가급적이면, **구체 클래스에 `@Transactional` 을 적용하자!**
+
+## 트랜잭션 AOP 주의 사항
+
+### 프록시 내부 호출
+
+보통 프록시 객체를 거치지 않고, 대상 객체를 바로 접근하는 순간에는 AOP가 적용되지 않는다. **대상 객체에서 내부 메서드에 대한 호출이 발생하면, 프록시를 거치지 않고 대상 객체의 메서드를 직접 호출하는 문제가
+발생하게 된다.**
+
+```java
+
+@Slf4j
+public class CallService {
+
+    public void external() {
+        log.info("call external");
+        printTxInfo();
+        internal();
+    }
+
+    @Transactional
+    public void internal() {
+        log.info("call internal");
+        printTxInfo();
+    }
+
+    private void printTxInfo() {
+        boolean txActive = TransactionSynchronizationManager.isActualTransactionActive();
+        log.info("tx active={}", txActive);
+    }
+}
+```
+
+위의 코드에서 `external()` 메서드를 호출했을 때, 아래의 결과가 나온다.
+
+<img width="788" alt="스크린샷 2022-06-12 오후 2 12 55" src="https://user-images.githubusercontent.com/23515771/173216250-1def31bc-21b3-4fa8-be26-76c144d88c8c.png">
+
+즉, `internal()` 에 트랜잭션이 적용되지 않은 부분을 확인할 수 있다.
+
+![스크린샷 2022-06-12 오후 2 09 00](https://user-images.githubusercontent.com/23515771/173215708-130e65ad-3e59-49a5-887c-962b9d3abaa4.png)
+
+위의 그림을 토대로 프록시 내부 호출시 발생하는 문제를 알 수 있다. 자기 자신의 `internal()` 를 호출한다. 즉, `this.internal()` 메서드를 호출 한다.
