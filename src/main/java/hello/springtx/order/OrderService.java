@@ -19,7 +19,7 @@ public class OrderService {
         log.info("결제 프로세스 진입");
         order.verifyIsValid();
         log.info("정상 승인");
-        order.changePayStatus("완료");
+        order.changePayStatus(OrderPayStatus.COMPLETE);
         log.info("결제 프로세스 완료");
     }
 }

@@ -28,7 +28,7 @@ class OrderServiceTest {
 
         // then
         Order findOrder = orderRepository.findById(order.getId()).get();
-        assertThat(findOrder.getPayStatus()).isEqualTo("완료");
+        assertThat(findOrder.getPayStatus()).isEqualTo(OrderPayStatus.COMPLETE);
     }
 
     @Test
@@ -58,6 +58,6 @@ class OrderServiceTest {
 
         // then
         Order findOrder = orderRepository.findById(order.getId()).get();
-        assertThat(findOrder.getPayStatus()).isEqualTo("대기");
+        assertThat(findOrder.getPayStatus()).isEqualTo(OrderPayStatus.WAIT);
     }
 }
