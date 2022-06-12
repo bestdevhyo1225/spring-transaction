@@ -10,6 +10,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import static hello.springtx.order.OrderPayStatus.COMPLETE;
+import static hello.springtx.order.OrderPayStatus.WAIT;
 import static lombok.AccessLevel.PROTECTED;
 
 @Entity
@@ -37,13 +39,13 @@ public class Order {
         }
 
         if (username.equals("잔고부족")) {
-            changePayStatus(OrderPayStatus.WAIT);
+            changePayStatus(WAIT);
             throw new NotEnoughMoneyException("잔고가 부족합니다.");
         }
     }
 
     public void changePayStatus(OrderPayStatus value) {
-        if (!value.equals(OrderPayStatus.WAIT) && !value.equals(OrderPayStatus.COMPLETE)) {
+        if (!value.equals(WAIT) && !value.equals(COMPLETE)) {
             throw new IllegalArgumentException("유효하지 않은 결제 상태를 전달 받았습니다.");
         }
         payStatus = value;
