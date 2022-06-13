@@ -90,7 +90,7 @@ public class BasicTxTest {
     }
 
     @Test
-    void outer_commit() {
+    void outer_rollback() {
         log.info("외부 트랜잭션 시작");
         TransactionStatus outer = txManager.getTransaction(new DefaultTransactionAttribute());
 
