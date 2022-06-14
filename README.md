@@ -26,14 +26,16 @@ logging.level.org.springframework.transaction.interceptor=TRACE
 
 클래스의 메서드를 찾고, 없으면 클래스 타입을 찾고, 없으면 인터페이스의 메서드를 찾는다. 그래도 없으면 인터페이스의 타입을 찾는다.
 
-- 인터페이스에 `@Transactional` 를 사용하는 것은 스프링 공식 메뉴얼에서 권장하지 않는 방법이다. **AOP를 적용하는 방식에 따라서 인터페이스의 AOP가 적용되지 않기 때문이다.**
+- 인터페이스에 `@Transactional` 를 사용하는 것은 스프링 공식 메뉴얼에서 권장하지 않는 방법이다. **AOP를 적용하는 방식에 따라서 인터페이스의 AOP가 적용되지
+  않기 때문이다.**
   가급적이면, **구체 클래스에 `@Transactional` 을 적용하자!**
 
 ## 트랜잭션 AOP 주의 사항
 
 ### 프록시 내부 호출
 
-보통 프록시 객체를 거치지 않고, 대상 객체를 바로 접근하는 순간에는 AOP가 적용되지 않는다. **대상 객체에서 내부 메서드에 대한 호출이 발생하면, 프록시를 거치지 않고 대상 객체의 메서드를 직접 호출하는 문제가
+보통 프록시 객체를 거치지 않고, 대상 객체를 바로 접근하는 순간에는 AOP가 적용되지 않는다. **대상 객체에서 내부 메서드에 대한 호출이 발생하면, 프록시를 거치지 않고 대상
+객체의 메서드를 직접 호출하는 문제가
 발생하게 된다.**
 
 ```java
@@ -117,7 +119,8 @@ CallService 클래스에는 `external()` 메서드만 존재하고, InternalServ
 
 ![스크린샷 2022-06-12 오후 2 33 17](https://user-images.githubusercontent.com/23515771/173217218-8ca23c8e-3684-48a6-b78c-941cefd54db0.png)
 
-실제 호출되는 흐름은 위의 이미지처럼 동작되고, InternalService는 `AOP Proxy로 생성되어 스프링 컨테이너에 등록되고`, 해당 AOP Proxy는 실제 InternalService 클래스의
+실제 호출되는 흐름은 위의 이미지처럼 동작되고, InternalService는 `AOP Proxy로 생성되어 스프링 컨테이너에 등록되고`, 해당 AOP Proxy는 실제
+InternalService 클래스의
 내부 `internal()` 메서드를 호출한다.
 
 ### 초기화 시점
@@ -140,7 +143,8 @@ static class Hello {
 
 <img width="749" alt="스크린샷 2022-06-12 오후 2 53 30" src="https://user-images.githubusercontent.com/23515771/173217744-bd62210f-c9fd-47d2-a865-1a17d4c32b76.png">
 
-`@PostConstructor` 와 `@Transactional` 를 함께 사용하면, 트랜잭션이 적용되지 않는다. 왜냐하면, 초기화 코드가 먼저 호출되고 그 다음에 트랜잭션 AOP가 적용되기 때문이다.
+`@PostConstructor` 와 `@Transactional` 를 함께 사용하면, 트랜잭션이 적용되지 않는다. 왜냐하면, 초기화 코드가 먼저 호출되고 그 다음에 트랜잭션
+AOP가 적용되기 때문이다.
 따라서**초기화 시점에는 해당 메서드에서 트랜잭션을 획득할 수 없다.**
 
 ### 초기화 시점에 트랜잭션을 적용하는 방법
