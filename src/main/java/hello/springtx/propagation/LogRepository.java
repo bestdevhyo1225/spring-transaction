@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Repository
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class LogRepository {
 
     private final EntityManager entityManager;
@@ -26,6 +25,7 @@ public class LogRepository {
         }
     }
 
+    @Transactional(readOnly = true)
     public Optional<Log> find(String message) {
         return entityManager.createQuery("select l from Log l where l.message = :message", Log.class)
             .setParameter("message", message)

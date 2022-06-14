@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Repository
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class MemberRepository {
 
     private final EntityManager entityManager;
@@ -21,6 +20,7 @@ public class MemberRepository {
         entityManager.persist(member);
     }
 
+    @Transactional(readOnly = true)
     public Optional<Member> find(String username) {
         return entityManager.createQuery("select m from Member m where m.username = :username", Member.class)
             .setParameter("username", username)
